@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Infrastructura completa ECR + ECS Fargate cu IAM si Security Group'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Selecteaza VPC-ul implicit (Default VPC)
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Selecteaza un Subnet Public din VPC-ul ales
+
+Resources:
+  # 1. Repository ECR pentru Docker Images
+  MyECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: "proiectul-meu-repo"
+      ImageScanningConfiguration:
+        ScanOnPush: true
+
+  # 2. Rolul IAM pentru executie (Permite ECS sa acceseze ECR si Loguri)
+  ECSExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  # 3. Security Group pentru portul 5050
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite acces HTTP pe portul 5050"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5050
+          ToPort: 5050
+          CidrIp: 0.0.0.0/0
+
+  # 4. Cluster ECS
+  MyECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "proiectul-meu-cluster"
+
+  # 5. Task Definition (Configuratia Containerului)
+  MyECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: "proiectul-meu-task"
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: "aplicatie-container"
+          # Link dinamic catre repo-ul creat mai sus
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MyECRRepository}:latest"
+          Essential: true
+          PortMappings:
+            - ContainerPort: 5050
+              Protocol: tcp
+
+  # 6. ECS Service (Porneste si mentine containerul)
+  MyECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: "proiectul-meu-service"
+      Cluster: !Ref MyECSCluster
+      TaskDefinition: !Ref MyECSTaskDefinition
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetId
+          SecurityGroups:
+            - !Ref ECSSecurityGroup
+
+Outputs:
+  ECRRepositoryUri:
+    Description: Adresa unde trebuie sa faci push la imaginea Docker
+    Value: !GetAtt MyECRRepository.RepositoryUri
