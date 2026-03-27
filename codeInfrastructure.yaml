@@ -74,6 +74,6 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           Subnets:
-            - !Ref SubnetId
+            - !Ref "SubnetId"
           SecurityGroups:
-            - !Ref ECSSecurityGroup
+            - !Ref "ECSSecurityGroup"
