@@ -73,4 +73,4 @@ Resources:
           Subnets:
             - !Ref SubnetId
           SecurityGroups:
-            - !Ref ECSSecurityGroup
+            - !GetAtt ECSSecurityGroup.GroupId
