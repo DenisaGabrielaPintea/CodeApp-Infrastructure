@@ -1,14 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'ECS Fargate pe VPC/Subnet Default'
+Description: "Infrastructura ECS Fargate pe VPC si Subnet Default"
 
 Parameters:
   EcrRepositoryName:
     Type: String
-    Description: { Introdu numele repository-ului ECR creat manual (ex: aplicatia-mea). }
+    Description: "Numele repository-ului ECR creat manual"
 
   SubnetId:
     Type: AWS::EC2::Subnet::Id
-    Description: Alege unul din Subnet-urile tale Default (Public).
+    Description: "ID-ul unui Subnet Public din VPC-ul Default"
 
 Resources:
   # 1. IAM Execution Role
@@ -25,12 +25,11 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
-  # 2. Security Group (Creat in VPC-ul default automat daca nu specificam VpcId)
+  # 2. Security Group
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: "Acces port 5050"
-      # Nota: Daca lasam VpcId gol, AWS il va pune automat in VPC-ul Default
+      GroupDescription: "Permite acces pe portul 5050"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5050
@@ -48,7 +47,8 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: "proiectul-meu-task"
-      RequiresCompatibilities: ["FARGATE"]
+      RequiresCompatibilities:
+        - "FARGATE"
       NetworkMode: awsvpc
       Cpu: "256"
       Memory: "512"
