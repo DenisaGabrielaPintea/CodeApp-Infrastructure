@@ -1,0 +1,87 @@
+Description: 'Infrastructure for Load Balancer'
+
+Parameters:
+  EnvironmentName:
+    Description: Project Name
+    Type: String
+    Default: ScalabilitySolution
+
+Resources:
+  # SECURITY GROUPS
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Permite trafic HTTP pe portul 80'
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvironmentName}-VPCID"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  ClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Permite portul 5050 doar de la Load Balancer'
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvironmentName}-VPCID"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5050
+          ToPort: 5050
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+
+  # LOAD BALANCER
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${EnvironmentName}-LoadBalancer"
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        Fn::Split: [",", { "Fn::ImportValue": !Sub "${EnvironmentName}-PublicSubnetsID" }]
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  LoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${EnvironmentName}-TargetGroup"
+      HealthCheckPath: /
+      Port: 5050
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvironmentName}-VPCID"
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LoadBalancerTargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  LoadBalancerDNS:
+    Description: 'DNS pentru accesarea site-ului'
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: !Sub "${EnvironmentName}-ALB-URL"
+
+  TargetGroupArn:
+    Description: 'Referinta pentru ECS Service'
+    Value: !Ref LoadBalancerTargetGroup
+    Export:
+      Name: !Sub "${EnvironmentName}-TargetGroup-ARN"
+
+  ClusterSG:
+    Description: 'Security Group pentru containere'
+    Value: !Ref ClusterSecurityGroup
+    Export:
+      Name: !Sub "${EnvironmentName}-CLUSTER-SecurityGroup"
