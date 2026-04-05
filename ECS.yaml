@@ -38,7 +38,7 @@ Resources:
       ExecutionRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
       ContainerDefinitions:
         - Name: !Sub "${EnvironmentName}-ContainerApp"
-          Image: 029139774173.dkr.ecr.eu-central-1.amazonaws.com/repository-codeapp:latest
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/nume-repo:latest"
           PortMappings:
             - ContainerPort: 5050
           LogConfiguration:
