@@ -20,6 +20,20 @@ Resources:
       LogGroupName: !Sub "/ecs/${EnvironmentName}"
       RetentionInDays: 7
 
+# THE MISSING PIECE: ECS Task Execution Role
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-ECSTaskExecutionRole"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ecs-tasks.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+          
   # TASK DEFINITION
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -30,7 +44,7 @@ Resources:
         - FARGATE
       Cpu: '256'
       Memory: '512'
-      ExecutionRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
       ContainerDefinitions:
         - Name: !Sub "${EnvironmentName}-ContainerApp"
           Image: 029139774173.dkr.ecr.eu-central-1.amazonaws.com/repository-codeapp:latest
