@@ -38,9 +38,9 @@ Resources:
       ExecutionRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
       ContainerDefinitions:
         - Name: !Sub "${EnvironmentName}-ContainerApp"
-          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/repository-codeapp:${ImageTag}"
+          Image: public.ecr.aws/nginx/nginx:latest
           PortMappings:
-            - ContainerPort: 5050
+            - ContainerPort: 80
           LogConfiguration:
             LogDriver: awslogs
             Options:
