@@ -6,6 +6,11 @@ Parameters:
     Type: String
     Default: ScalabilitySolution
 
+ImageTag:
+    Type: String
+    Default: latest
+    Description: Tag-ul imaginii din ECR (ex. v1.0.2 sau latest)
+
 Resources:
   # CLUSTER
   ECSCluster:
@@ -33,7 +38,7 @@ Resources:
       ExecutionRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
       ContainerDefinitions:
         - Name: !Sub "${EnvironmentName}-ContainerApp"
-          Image:
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/repository-codeapp:${ImageTag}"
           PortMappings:
             - ContainerPort: 5050
           LogConfiguration:
