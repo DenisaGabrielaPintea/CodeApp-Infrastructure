@@ -1,4 +1,4 @@
-Description: 'Infrastructure for Load Balancer'
+Description: 'Stack 2: Infrastructure for Load Balancer'
 
 Parameters:
   EnvironmentName:
