@@ -89,7 +89,7 @@ Outputs:
       Name: !Sub "${EnvironmentName}-ClusterName"
 
     ECSServiceName:
-      Value: !GetAtt ECSService.Name
+      Value: !GetAtt ECSService
       Export:
         Name: !Sub "${EnvironmentName}-ServiceName"
 
