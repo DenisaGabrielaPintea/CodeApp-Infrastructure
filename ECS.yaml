@@ -20,7 +20,7 @@ Resources:
       LogGroupName: !Sub "/ecs/${EnvironmentName}"
       RetentionInDays: 7
 
-# THE MISSING PIECE: ECS Task Execution Role
+  # ECS Task Execution Role
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -34,6 +34,29 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
+  ECSTaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub "${EnvironmentName}-ECSTaskRole"
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: [ecs-tasks.amazonaws.com]
+              Action: ['sts:AssumeRole']
+        Policies:
+          - PolicyName: !Sub "${EnvironmentName}-ECSExecPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - ssmmessages:CreateControlChannel
+                    - ssmmessages:CreateDataChannel
+                    - ssmmessages:OpenControlChannel
+                    - ssmmessages:OpenDataChannel
+                  Resource: "*"
+
   # TASK DEFINITION
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -45,6 +68,7 @@ Resources:
       Cpu: '256'
       Memory: '512'
       ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRole.Arn
       ContainerDefinitions:
         - Name: !Sub "${EnvironmentName}-ContainerApp"
           Image: 029139774173.dkr.ecr.eu-central-1.amazonaws.com/repository-codeapp:latest
