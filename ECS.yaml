@@ -33,7 +33,7 @@ Resources:
             Action: ['sts:AssumeRole']
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-          
+
   # TASK DEFINITION
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -82,3 +82,20 @@ Outputs:
   ServiceArn:
     Description: ARN-ul serviciului ECS
     Value: !Ref ECSService
+
+  ECSClusterName:
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${EnvironmentName}-ClusterName"
+
+    ECSServiceName:
+      Value: !GetAtt ECSService.Name
+      Export:
+        Name: !Sub "${EnvironmentName}-ServiceName"
+
+  ECSResourceIdForScaling:
+    Description: Resource ID for Application Auto Scaling
+    Value: !Sub "service/${ECSCluster}/${ECSService.Name}"
+    Export:
+      Name: !Sub "${EnvironmentName}-ScalingResourceId"
+
