@@ -88,10 +88,10 @@ Outputs:
     Export:
       Name: !Sub "${EnvironmentName}-ClusterName"
 
-    ECSServiceName:
-      Value: !GetAtt ECSService
-      Export:
-        Name: !Sub "${EnvironmentName}-ServiceName"
+  ECSServiceName:
+    Value: !GetAtt ECSService.Name
+    Export:
+      Name: !Sub "${EnvironmentName}-ServiceName"
 
   ECSResourceIdForScaling:
     Description: Resource ID for Application Auto Scaling
