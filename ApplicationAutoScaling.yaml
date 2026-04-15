@@ -1,0 +1,104 @@
+Description: 'Stack 4: Infrastructure for AutoScaling'
+
+Parameters:
+  EnvironmentName:
+    Description: Project Name
+    Type: String
+    Default: ScalabilitySolution
+
+Resources:
+
+  AutoscalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvironmentName}-AutoscalingRole"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [application-autoscaling.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole
+
+  ECSAutoScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 3
+      MinCapacity: 1
+      ResourceId: !ImportValue
+        Fn::Sub: "${EnvironmentName}-ScalingResourceId"
+      RoleARN: !GetAtt AutoscalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  ScaleOutPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub "${EnvironmentName}-ScaleOut"
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ECSAutoScalingTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 60
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            ScalingAdjustment: 1
+
+  ScaleInPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub "${EnvironmentName}-ScaleIn"
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ECSAutoScalingTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 60
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalUpperBound: 0
+            ScalingAdjustment: -1
+
+  CPUHighAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-CPU-High-60"
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 60
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ClusterName
+          Value: !ImportValue
+            Fn::Sub: "${EnvironmentName}-ClusterName"
+        - Name: ServiceName
+          Value: !ImportValue
+            Fn::Sub: "${EnvironmentName}-ServiceName"
+      AlarmActions:
+        - !Ref ScaleOutPolicy
+
+  CPULowAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-CPU-Low-30"
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 30
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: ClusterName
+          Value: !ImportValue
+            Fn::Sub: "${EnvironmentName}-ClusterName"
+        - Name: ServiceName
+          Value: !ImportValue
+            Fn::Sub: "${EnvironmentName}-ServiceName"
+      AlarmActions:
+        - !Ref ScaleInPolicy
