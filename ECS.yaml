@@ -66,6 +66,7 @@ Resources:
       TaskDefinition: !Ref TaskDefinition
       DesiredCount: 1 #cate containere ruleaza
       LaunchType: FARGATE
+      EnableExecuteCommand: true
       NetworkConfiguration:
         AwsvpcConfiguration:
           Subnets:
