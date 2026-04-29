@@ -1,3 +1,5 @@
+Description: 'Stack 2: Infrastructure for VPC'
+
 Parameters:
   EnvironmentName:
     Description: Project name
