@@ -69,7 +69,7 @@ Resources:
       Namespace: AWS/ECS
       Statistic: Average
       Period: 60
-      EvaluationPeriods: 1
+      EvaluationPeriods: 5
       Threshold: 60
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -90,7 +90,7 @@ Resources:
       Namespace: AWS/ECS
       Statistic: Average
       Period: 60
-      EvaluationPeriods: 1
+      EvaluationPeriods: 5
       Threshold: 30
       ComparisonOperator: LessThanThreshold
       Dimensions:
