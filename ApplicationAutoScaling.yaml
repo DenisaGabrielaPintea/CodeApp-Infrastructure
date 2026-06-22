@@ -68,7 +68,7 @@ Resources:
       MetricName: CPUUtilization
       Namespace: AWS/ECS
       Statistic: Average
-      Period: 300
+      Period: 60
       EvaluationPeriods: 1
       Threshold: 60
       ComparisonOperator: GreaterThanThreshold
@@ -89,7 +89,7 @@ Resources:
       MetricName: CPUUtilization
       Namespace: AWS/ECS
       Statistic: Average
-      Period: 300
+      Period: 60
       EvaluationPeriods: 1
       Threshold: 30
       ComparisonOperator: LessThanThreshold
