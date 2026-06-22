@@ -12,7 +12,7 @@ Resources:
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'Permite trafic HTTP pe portul 80'
+      GroupDescription: 'Allow HTTP traffic on port 80'
       VpcId:
         Fn::ImportValue: !Sub "${EnvironmentName}-VPCID"
       SecurityGroupIngress:
@@ -24,7 +24,7 @@ Resources:
   ClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'Permite portul 5050 doar de la Load Balancer'
+      GroupDescription: 'Allow port 5050 only from Load Balancer'
       VpcId:
         Fn::ImportValue: !Sub "${EnvironmentName}-VPCID"
       SecurityGroupIngress:

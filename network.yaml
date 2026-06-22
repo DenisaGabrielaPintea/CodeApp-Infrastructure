@@ -1,4 +1,4 @@
-Description: 'Stack 2: Infrastructure for VPC'
+Description: 'Stack 1: Infrastructure for VPC'
 
 Parameters:
   EnvironmentName:
